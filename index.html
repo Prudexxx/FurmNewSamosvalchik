@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Адаптивная форма</title>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<style>
+  * {
+    color: #000000 !important;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background: #9e86e2;
+  }
+
+  form {
+    background: #f19c3b;
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .form-group {
+    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+  }
+
+  @media (min-width: 600px) {
+    .form-row {
+      display: flex;
+      gap: 15px;
+    }
+    .form-group-half {
+      flex: 1 1 48%;
+    }
+  }
+
+  label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #000000;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="number"],
+  textarea,
+  select {
+    padding: 8px;
+    border: 1px solid #666;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    color: #000000 !important;
+    background-color: white;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #666 !important;
+    opacity: 1;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  button {
+    padding: 12px 20px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    color: white !important;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+    align-self: flex-start;
+  }
+
+  button:hover {
+    background-color: #0069d9;
+  }
+
+  h2 {
+    text-align: center;
+    color: #000000;
+  }
+
+  .date-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .date-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .date-option {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    color: #000000;
+  }
+
+  .date-option input {
+    margin: 0;
+  }
+
+  .date-option span {
+    color: #000000;
+  }
+
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 10px;
+    color: #000000 !important;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    margin: 10px auto;
+    max-width: 800px;
+  }
+
+  .success-message {
+    display: none;
+    text-align: center;
+    padding: 10px;
+    background-color: #d4edda;
+    color: #000000 !important;
+    border-radius: 4px;
+    margin: 10px auto;
+    max-width: 800px;
+    border: 1px solid #c3e6cb;
+  }
+
+  .error-message {
+    display: none;
+    text-align: center;
+    padding: 10px;
+    background-color: #f8d7da;
+    color: #000000 !important;
+    border-radius: 4px;
+    margin: 10px auto;
+    max-width: 800px;
+    border: 1px solid #f5c6cb;
+  }
+</style>
+</head>
+<body>
+
+  <h2>Форма Заказа</h2>
+  
+  <div class="loading" id="loading">Отправка данных...</div>
+  <div class="success-message" id="successMessage">✅ Данные успешно отправлены!</div>
+  <div class="error-message" id="errorMessage"></div>
+
+  <form id="transportForm">
+    <div class="form-row">
+      <div class="form-group form-group-half">
+        <label for="material">Материал</label>
+        <input type="text" id="material" name="material" placeholder="Введите материал" required>
+      </div>
+
+      <div class="form-group form-group-half">
+        <label for="delivery_date">Дата доставки</label>
+        <div class="date-container">
+          <div class="date-options">
+            <label class="date-option">
+              <input type="radio" name="delivery_type" value="date" checked>
+              <span>Выбрать дату</span>
+            </label>
+            <label class="date-option">
+              <input type="radio" name="delivery_type" value="call">
+              <span>По звонку</span>
+            </label>
+            <label class="date-option">
+              <input type="radio" name="delivery_type" value="ready">
+              <span>По готовности</span>
+            </label>
+          </div>
+          <input type="date" id="delivery_date" name="delivery_date" required>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="volume">Объём</label>
+        <div class="volume-container">
+          <select id="volume" name="volume" required>
+            <option value="м3">м³</option>
+            <option value="т">т</option>
+          </select> 
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group form-group-half">
+        <label for="quantity">Количество</label>
+        <input type="number" id="quantity" name="quantity" placeholder="Количество" required>
+      </div>
+
+      <div class="form-group form-group-half">
+        <label for="price">Цена</label>
+        <input type="number" id="price" name="price" placeholder="Цена" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="district">Район</label>
+        <input type="text" id="district" name="district" placeholder="Район" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="address_name">Адрес, имя</label>
+        <input type="text" id="address_name" name="address_name" placeholder="Адрес, имя" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="phone">Телефон</label>
+        <input type="text" id="phone" name="phone" placeholder="Телефон" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="manager_name">Имя менеджера</label>
+        <input type="text" id="manager_name" name="manager_name" placeholder="Имя менеджера" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="source">Откуда узнали о нас?</label>
+        <input type="text" id="source" name="source" placeholder="Откуда узнали о нас" required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="comment">Комментарий</label>
+        <textarea id="comment" name="comment" rows="3" placeholder="Комментарий"></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="carrier">Перевозчик</label>
+        <input type="text" id="carrier" name="carrier" placeholder="Перевозчик">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="commission">Комиссия</label>
+        <input type="number" id="commission" name="commission" placeholder="Комиссия">
+      </div>
+    </div>
+
+    <button type="submit">Отправить</button>
+  </form>
+
+<script>
+  // Настройки Telegram
+  const TELEGRAM_BOT_TOKEN = '7749887573:AAGAsaFD44-OcKNWOybvz4ceIG1qgps5pE8';
+  const TELEGRAM_CHAT_ID = '421332431';
+  
+  // URL Google Apps Script
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFQ0RiofQcBpC56uztdJkV1PmDCjhzTKQ8F_Hkh8ZsxTpoaEQF2JThJk02g3Mqu7CuSA/exec';
+
+  // Глобальная функция для управления полем даты
+  window.updateDateField = function() {
+    const selectedOption = document.querySelector('input[name="delivery_type"]:checked').value;
+    const dateInput = document.getElementById('delivery_date');
+    
+    if (selectedOption === 'date') {
+      dateInput.style.display = 'block';
+      dateInput.required = true;
+    } else {
+      dateInput.style.display = 'none';
+      dateInput.required = false;
+    }
+  };
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Установка сегодняшней даты по умолчанию
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayFormatted = `${yyyy}-${mm}-${dd}`;
+    
+    document.getElementById('delivery_date').value = todayFormatted;
+    
+    // Управление видимостью поля даты
+    const dateOptions = document.querySelectorAll('input[name="delivery_type"]');
+    
+    // Инициализация
+    updateDateField();
+    
+    // Добавляем обработчики на радиокнопки
+    dateOptions.forEach(option => {
+      option.addEventListener('change', updateDateField);
+    });
+  });
+
+  // Функция для отправки в Telegram с использованием Axios
+  async function sendToTelegram(dataObject) {
+    try {
+      console.log('Начинаем отправку в Telegram...');
+      
+      // Формируем текст сообщения для Telegram
+      const selectedOption = document.querySelector('input[name="delivery_type"]:checked').value;
+      let deliveryDateText = '';
+      
+      if (selectedOption === 'date') {
+        const date = new Date(dataObject.delivery_date);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        deliveryDateText = `${day}.${month}.${year}`;
+      } else if (selectedOption === 'call') {
+        deliveryDateText = 'По звонку';
+      } else if (selectedOption === 'ready') {
+        deliveryDateText = 'По готовности';
+      }
+      
+      const message = `📦 НОВАЯ ЗАЯВКА 📦
+
+📌 Материал: ${dataObject.material || 'Не указано'}
+📅 Дата доставки: ${deliveryDateText}
+📊 Объём: ${dataObject.volume || 'Не указано'}
+🔢 Количество: ${dataObject.quantity || 'Не указано'}
+💰 Цена: ${dataObject.price || 'Не указано'}
+📍 Район: ${dataObject.district || 'Не указано'}
+🏠 Адрес и имя: ${dataObject.address_name || 'Не указано'}
+📱 Телефон: ${dataObject.phone || 'Не указано'}
+👤 Менеджер: ${dataObject.manager_name || 'Не указано'}
+🔍 Источник: ${dataObject.source || 'Не указано'}
+📝 Комментарий: ${dataObject.comment || 'Нет'}
+🚚 Перевозчик: ${dataObject.carrier || 'Не указано'}
+💵 Комиссия: ${dataObject.commission || 'Не указано'}
+⏰ Время заявки: ${new Date().toLocaleString('ru-RU')}`;
+
+      console.log('Сообщение для Telegram:', message);
+      
+      // Используем Axios для отправки
+      const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+      
+      console.log('URL Telegram:', telegramUrl);
+      
+      const response = await axios.post(telegramUrl, {
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message,
+        parse_mode: 'HTML'
+      });
+      
+      console.log('✅ Telegram отправлен:', response.data);
+      
+      if (response.data.ok) {
+        return true;
+      } else {
+        throw new Error(response.data.description || 'Telegram error');
+      }
+      
+    } catch (error) {
+      console.error('❌ Ошибка отправки в Telegram:', error);
+      
+      // Пробуем альтернативный метод через Image для обхода CORS
+      try {
+        console.log('Пробуем альтернативный метод отправки...');
+        
+        const shortMessage = `Новая заявка! Тел: ${dataObject.phone || 'Нет'}, Адрес: ${dataObject.address_name || 'Нет'}`;
+        const img = new Image();
+        img.src = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(shortMessage)}`;
+        
+        console.log('Альтернативный метод запущен');
+        return true;
+      } catch (fallbackError) {
+        console.error('Альтернативный метод тоже не сработал:', fallbackError);
+        // Все равно продолжаем отправку в Google Sheets
+        return false;
+      }
+    }
+  }
+
+  // Функция для отправки данных в Google Sheets
+  async function sendToGoogleSheets(dataObject) {
+    try {
+      // Получаем текущую дату и время
+      const now = new Date();
+      const timestamp = now.toLocaleString('ru-RU');
+      
+      // Определяем текст для даты доставки
+      const selectedOption = document.querySelector('input[name="delivery_type"]:checked').value;
+      let deliveryDateText = '';
+      
+      if (selectedOption === 'date') {
+        deliveryDateText = dataObject.delivery_date;
+      } else if (selectedOption === 'call') {
+        deliveryDateText = 'По звонку';
+      } else if (selectedOption === 'ready') {
+        deliveryDateText = 'По готовности';
+      }
+      
+      // Формируем данные для отправки
+      const payload = {
+        timestamp: timestamp,
+        material: dataObject.material || '',
+        delivery_date: deliveryDateText,
+        volume: dataObject.volume || '',
+        quantity: dataObject.quantity || '',
+        price: dataObject.price || '',
+        district: dataObject.district || '',
+        address_name: dataObject.address_name || '',
+        phone: dataObject.phone || '',
+        comment: dataObject.comment || '',
+        carrier: dataObject.carrier || '',
+        commission: dataObject.commission || '',
+         manager_name: dataObject.manager_name || '',
+        source: dataObject.source || '',
+      };
+      
+      console.log('Отправляем в Google Sheets:', payload);
+      
+      // Создаем URL с параметрами
+      const params = new URLSearchParams(payload);
+      const urlWithParams = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
+      
+      // Отправляем запрос
+      await fetch(urlWithParams, {
+        method: 'GET',
+        mode: 'no-cors'
+      });
+      
+      console.log('✅ Данные отправлены в Google Sheets');
+      return true;
+      
+    } catch (error) {
+      console.error('❌ Ошибка при отправке в Google Sheets:', error);
+      throw error;
+    }
+  }
+
+  // Обработчик отправки формы
+  document.getElementById('transportForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Показываем индикатор загрузки
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('successMessage').style.display = 'none';
+    document.getElementById('errorMessage').style.display = 'none';
+    
+    // Собираем данные из формы
+    const formData = new FormData(e.target);
+    const dataObject = {};
+    formData.forEach((value, key) => {
+      dataObject[key] = value;
+    });
+    
+    console.log('Собранные данные:', dataObject);
+    
+    try {
+      // Параллельно отправляем в Telegram и Google Sheets
+      const telegramPromise = sendToTelegram(dataObject);
+      const sheetsPromise = sendToGoogleSheets(dataObject);
+      
+      // Ждем завершения обоих запросов
+      const [telegramResult, sheetsResult] = await Promise.allSettled([
+        telegramPromise,
+        sheetsPromise
+      ]);
+      
+      console.log('Результаты отправки:', {
+        telegram: telegramResult.status,
+        sheets: sheetsResult.status
+      });
+      
+      // Проверяем результаты
+      let hasError = false;
+      let errorMessage = '';
+      
+      if (telegramResult.status === 'rejected') {
+        console.warn('⚠️ Telegram не отправился, но продолжаем...');
+      }
+      
+      if (sheetsResult.status === 'rejected') {
+        hasError = true;
+        errorMessage = 'Ошибка отправки в Google Sheets';
+      }
+      
+      if (hasError) {
+        throw new Error(errorMessage);
+      }
+      
+      // Показываем сообщение об успехе
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('successMessage').style.display = 'block';
+      
+      // Сбрасываем форму
+      e.target.reset();
+      
+      // Сброс даты на сегодняшнюю
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById('delivery_date').value = `${yyyy}-${mm}-${dd}`;
+      
+      // Сброс радиокнопок
+      document.querySelector('input[name="delivery_type"][value="date"]').checked = true;
+      
+      // Обновляем поле даты
+      if (typeof window.updateDateField === 'function') {
+        window.updateDateField();
+      }
+      
+      // Скрываем сообщение об успехе через 5 секунд
+      setTimeout(() => {
+        document.getElementById('successMessage').style.display = 'none';
+      }, 5000);
+      
+    } catch (error) {
+      // Показываем сообщение об ошибке
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('errorMessage').style.display = 'block';
+      document.getElementById('errorMessage').textContent = error.message || 'Ошибка при отправке данных. Попробуйте еще раз.';
+      console.error('❌ Общая ошибка отправки:', error);
+      
+      // Скрываем сообщение об ошибке через 5 секунд
+      setTimeout(() => {
+        document.getElementById('errorMessage').style.display = 'none';
+      }, 5000);
+    }
+  });
+</script>
+</body>
+</html>
